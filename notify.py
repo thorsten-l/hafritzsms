@@ -26,7 +26,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up the SMS notification targets from a config entry."""
     device_registry = dr.async_get(hass)
-    device_registry.async_get_or_create(
+    box_device = device_registry.async_get_or_create(
         config_entry_id=config_entry.entry_id,
         identifiers={(DOMAIN, config_entry.entry_id)},
         name=config_entry.title,
@@ -38,6 +38,7 @@ async def async_setup_entry(
                 FritzBoxNotifyEntity(
                     config_entry,
                     subentry,
+                    box_device.id,
                 )
             ],
             config_subentry_id=subentry_id,
@@ -50,7 +51,12 @@ class FritzBoxNotifyEntity(NotifyEntity):
     _attr_has_entity_name = True
     _attr_icon = "mdi:message-text"
 
-    def __init__(self, entry: FritzBoxConfigEntry, subentry: ConfigSubentry) -> None:
+    def __init__(
+        self,
+        entry: FritzBoxConfigEntry,
+        subentry: ConfigSubentry,
+        box_device_id: str,
+    ) -> None:
         """Initialize the service."""
         self.entry = entry
         self.subentry = subentry
@@ -59,7 +65,7 @@ class FritzBoxNotifyEntity(NotifyEntity):
         self._attr_device_info = dr.DeviceInfo(
             identifiers={(DOMAIN, subentry.subentry_id)},
             name=subentry.title,
-            via_device=(DOMAIN, entry.entry_id),
+            via_device_id=box_device_id,
         )
 
     async def async_send_message(self, message: str, title: str | None = None) -> None:
