@@ -17,7 +17,8 @@
     "error": {
       "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
       "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
-      "unknown": "[%key:common::config_flow::error::unknown%]"
+      "unknown": "[%key:common::config_flow::error::unknown%]",
+      "totp_not_configured": "App-based second factor (TOTP) is not configured for this user yet"
     },
     "abort": {
       "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"

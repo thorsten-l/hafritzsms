@@ -1,0 +1,60 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Diese FRITZ!Box ist bereits eingerichtet"
+        },
+        "error": {
+            "cannot_connect": "Verbindung zur FRITZ!Box fehlgeschlagen",
+            "invalid_auth": "Anmeldung fehlgeschlagen (Benutzername oder Passwort falsch)",
+            "unknown": "Unerwarteter Fehler",
+            "totp_not_configured": "Für diesen Benutzer ist die App-basierte Zwei-Faktor-Anmeldung (TOTP) noch nicht eingerichtet"
+        },
+        "step": {
+            "user": {
+                "description": "Bitte die Zugangsdaten für die FRITZ!Box eingeben.",
+                "data": {
+                    "host": "Host",
+                    "password": "Passwort",
+                    "username": "Benutzername",
+                    "token": "Authenticator-Geheimnis (TOTP Secret)"
+                },
+                "data_description": {
+                    "token": "Aktueller TOTP-Code: {code}"
+                }
+            }
+        }
+    },
+    "config_subentries": {
+        "target": {
+            "step": {
+                "user": {
+                    "title": "Empfänger hinzufügen",
+                    "description": "SMS-Empfänger anlegen",
+                    "data": {
+                        "name": "Name",
+                        "target": "Rufnummer (z. B. +4917012345678)"
+                    }
+                },
+                "reconfigure": {
+                    "title": "Empfänger ändern",
+                    "description": "SMS-Empfänger ändern",
+                    "data": {
+                        "name": "Name",
+                        "target": "Rufnummer (z. B. +4917012345678)"
+                    }
+                }
+            },
+            "error": {
+                "impossible_number": "Das ist keine gültige Rufnummer"
+            },
+            "abort": {
+                "reconfigure_successful": "Empfänger wurde geändert"
+            },
+            "initiate_flow": {
+                "user": "SMS-Empfänger hinzufügen",
+                "reconfigure": "SMS-Empfänger ändern"
+            },
+            "entry_type": "SMS-Empfänger"
+        }
+    }
+}

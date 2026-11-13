@@ -2,6 +2,14 @@ The **AVM FRITZ!Box SMS** integration allows you to send SMS via an AVM FRITZ!Bo
 
 This integration uses a local API which is available with 4G/LTE models of AVM FRITZ!Box.
 
+## Changes in this fork (0.3.0)
+
+- The FRITZ!Box client (formerly the PyPI package `pyfritzsms` by @mback2k, Apache-2.0) is vendored as `fritzbox.py`.
+- Login uses PBKDF2 (FRITZ!OS 7.24+) and falls back to MD5 on older boxes.
+- Clear error messages in Home Assistant instead of `KeyError`/`RuntimeError`. The session is always logged out, parallel sends are serialised.
+- The `title` of `notify.send_message` is prepended to the SMS text (`Title: Message`).
+- German translation.
+
 ## Requirements
 
 - AVM FRITZ!Box with internal or USB cellular modem and SMS enabled SIM card.
@@ -28,7 +36,7 @@ one second-factor attached to it. You will need the second-factor plaintext secr
 You will want to use [HACS](https://www.hacs.xyz/) to install this custom integration.
 
 1. Login to your Home Assistant.
-2. Install custom HACS repository: `https://github.com/mback2k/hafritzsms`
+2. Install custom HACS repository: `https://github.com/thorsten-l/hafritzsms`
 3. Setup new integration "AVM FRITZ!Box SMS" via device settings.
 4. Fill in hostname, username, password and second-factor secret for your FRITZ!Box.
 5. After confirmation you will get an error, but there is now a generated TOTP to copy into step 10. above.

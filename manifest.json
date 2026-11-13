@@ -2,15 +2,15 @@
   "domain": "fritzsms",
   "name": "AVM FRITZ!Box SMS",
   "codeowners": [
-    "@mback2k"
+    "@thorsten-l"
   ],
   "config_flow": true,
-  "documentation": "https://github.com/mback2k/hafritzsms",
+  "documentation": "https://github.com/thorsten-l/hafritzsms",
   "iot_class": "local_polling",
-  "issue_tracker": "https://github.com/mback2k/hafritzsms/issues",
+  "issue_tracker": "https://github.com/thorsten-l/hafritzsms/issues",
   "requirements": [
-    "pyfritzsms==0.1.4",
-    "phonenumberslite==9.0.5"
+    "pyotp>=2.9.0",
+    "phonenumberslite>=9.0.5"
   ],
-  "version": "0.2.1"
+  "version": "0.3.0"
 }

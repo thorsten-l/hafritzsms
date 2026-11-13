@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from fritzsms.fritzbox import FritzBox
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_TOKEN, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+
+from .fritzbox import FritzBox
 
 _PLATFORMS: list[Platform] = [Platform.NOTIFY]
 

@@ -6,11 +6,12 @@
         "error": {
             "cannot_connect": "Failed to connect",
             "invalid_auth": "Invalid authentication",
-            "unknown": "Unexpected error"
+            "unknown": "Unexpected error",
+            "totp_not_configured": "App-based second factor (TOTP) is not configured for this user yet"
         },
         "step": {
             "user": {
-                "description": "Please enter the credentials for your AVM FRITZ!Bo.",
+                "description": "Please enter the credentials for your AVM FRITZ!Box.",
                 "data": {
                     "host": "Host",
                     "password": "Password",

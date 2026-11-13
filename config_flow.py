@@ -5,8 +5,6 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-import aiohttp
-from fritzsms.fritzbox import FritzBox
 import phonenumbers
 import voluptuous as vol
 
@@ -29,6 +27,12 @@ from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import DOMAIN
+from .fritzbox import (
+    FritzBox,
+    FritzBoxAuthError,
+    FritzBoxConnectionError,
+    FritzBoxError,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -69,18 +73,26 @@ class FritzBoxConfigFlow(ConfigFlow, domain=DOMAIN):
             try:
                 await box.login(user_input[CONF_USERNAME], user_input[CONF_PASSWORD])
                 otp_configured = await box.is_otp_configured()
-                await box.logout()
+            except FritzBoxConnectionError:
+                errors[CONF_HOST] = "cannot_connect"
+            except FritzBoxAuthError:
+                errors["base"] = "invalid_auth"
+            except FritzBoxError:
+                _LOGGER.exception("Unexpected exception")
+                errors["base"] = "unknown"
+            else:
                 if not otp_configured:
-                    errors[CONF_TOKEN] = "invalid_auth"
+                    errors[CONF_TOKEN] = "totp_not_configured"
                 else:
+                    await self.async_set_unique_id(
+                        f"{user_input[CONF_HOST]}_{user_input[CONF_USERNAME]}"
+                    )
+                    self._abort_if_unique_id_configured()
                     return self.async_create_entry(
                         title=user_input[CONF_HOST], data=user_input
                     )
-            except aiohttp.client_exceptions.ClientConnectorError:
-                errors[CONF_HOST] = "cannot_connect"
-            except RuntimeError:
-                _LOGGER.exception("Unexpected exception")
-                errors["base"] = "unknown"
+            finally:
+                await box.logout()
 
             data_schema = self.add_suggested_values_to_schema(
                 STEP_USER_DATA_SCHEMA, user_input

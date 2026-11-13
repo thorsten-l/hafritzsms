@@ -8,11 +8,13 @@ from homeassistant.components.notify import NotifyEntity
 from homeassistant.config_entries import ConfigSubentry
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_TARGET, CONF_USERNAME
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import FritzBoxConfigEntry
 from .const import DOMAIN
+from .fritzbox import FritzBoxError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -65,11 +67,20 @@ class FritzBoxNotifyEntity(NotifyEntity):
         box = self.entry.runtime_data
         cfg = self.entry.data
         sub = self.subentry.data
+        text = f"{title}: {message}" if title else message
 
-        await box.login(cfg[CONF_USERNAME], cfg[CONF_PASSWORD])
-
-        uid = await box.send_sms(sub[CONF_TARGET], message)
-        if uid:
-            await box.delete_sms(uid)
-
-        await box.logout()
+        async with box.lock:
+            try:
+                await box.login(cfg[CONF_USERNAME], cfg[CONF_PASSWORD])
+                uid = await box.send_sms(sub[CONF_TARGET], text)
+                if uid and uid is not True:
+                    try:
+                        await box.delete_sms(uid)
+                    except FritzBoxError as err:
+                        _LOGGER.warning("Sent SMS could not be deleted: %s", err)
+            except FritzBoxError as err:
+                raise HomeAssistantError(
+                    f"SMS to {self.subentry.title} could not be sent: {err}"
+                ) from err
+            finally:
+                await box.logout()
