@@ -32,6 +32,7 @@ from .fritzbox import (
     FritzBoxAuthError,
     FritzBoxConnectionError,
     FritzBoxError,
+    FritzBoxTwoFactorError,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -68,22 +69,14 @@ class FritzBoxConfigFlow(ConfigFlow, domain=DOMAIN):
             user_input[CONF_TOKEN] = user_input[CONF_TOKEN].replace(" ", "")
             session = async_get_clientsession(self.hass)
             box = FritzBox(user_input[CONF_HOST], session)
-            box.set_otp(user_input[CONF_TOKEN])
-            code = box.get_otp()
             try:
-                await box.login(user_input[CONF_USERNAME], user_input[CONF_PASSWORD])
-                otp_configured = await box.is_otp_configured()
-            except FritzBoxConnectionError:
-                errors[CONF_HOST] = "cannot_connect"
-            except FritzBoxAuthError:
-                errors["base"] = "invalid_auth"
-            except FritzBoxError:
-                _LOGGER.exception("Unexpected exception")
-                errors["base"] = "unknown"
+                box.set_otp(user_input[CONF_TOKEN])
+                code = box.get_otp()
+            except FritzBoxTwoFactorError:
+                errors[CONF_TOKEN] = "invalid_secret"
             else:
-                if not otp_configured:
-                    errors[CONF_TOKEN] = "totp_not_configured"
-                else:
+                errors = await self._async_check_login(box, user_input)
+                if not errors:
                     await self.async_set_unique_id(
                         f"{user_input[CONF_HOST]}_{user_input[CONF_USERNAME]}"
                     )
@@ -91,8 +84,6 @@ class FritzBoxConfigFlow(ConfigFlow, domain=DOMAIN):
                     return self.async_create_entry(
                         title=user_input[CONF_HOST], data=user_input
                     )
-            finally:
-                await box.logout()
 
             data_schema = self.add_suggested_values_to_schema(
                 STEP_USER_DATA_SCHEMA, user_input
@@ -106,6 +97,25 @@ class FritzBoxConfigFlow(ConfigFlow, domain=DOMAIN):
             errors=errors,
             description_placeholders={"code": code},
         )
+
+    async def _async_check_login(
+        self, box: FritzBox, user_input: dict[str, Any]
+    ) -> dict[str, str]:
+        """Log in once and check that TOTP is configured for the user."""
+        try:
+            await box.login(user_input[CONF_USERNAME], user_input[CONF_PASSWORD])
+            if not await box.is_otp_configured():
+                return {CONF_TOKEN: "totp_not_configured"}
+        except FritzBoxConnectionError:
+            return {CONF_HOST: "cannot_connect"}
+        except FritzBoxAuthError:
+            return {"base": "invalid_auth"}
+        except FritzBoxError:
+            _LOGGER.exception("Unexpected exception")
+            return {"base": "unknown"}
+        finally:
+            await box.logout()
+        return {}
 
     @classmethod
     @callback

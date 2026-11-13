@@ -7,7 +7,8 @@
             "cannot_connect": "Verbindung zur FRITZ!Box fehlgeschlagen",
             "invalid_auth": "Anmeldung fehlgeschlagen (Benutzername oder Passwort falsch)",
             "unknown": "Unerwarteter Fehler",
-            "totp_not_configured": "Für diesen Benutzer ist die App-basierte Zwei-Faktor-Anmeldung (TOTP) noch nicht eingerichtet"
+            "totp_not_configured": "Für diesen Benutzer ist die App-basierte Zwei-Faktor-Anmeldung (TOTP) noch nicht eingerichtet",
+            "invalid_secret": "Das ist kein gültiges TOTP-Geheimnis. Bitte das Geheimnis aus der FRITZ!Box eingeben (Buchstaben A–Z und Ziffern 2–7), nicht den 6-stelligen Code."
         },
         "step": {
             "user": {

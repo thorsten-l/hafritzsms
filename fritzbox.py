@@ -11,6 +11,8 @@ Apache License 2.0), vendored into this integration and extended:
 from __future__ import annotations
 
 import asyncio
+import base64
+import binascii
 import hashlib
 from typing import Any
 from xml.etree import ElementTree
@@ -81,7 +83,14 @@ class FritzBox:
 
     def set_otp(self, otp_secret: str) -> None:
         """Set the TOTP secret (plaintext, base32)."""
-        self._otp = pyotp.TOTP(otp_secret)
+        secret = otp_secret.replace(" ", "").upper()
+        try:
+            base64.b32decode(secret + "=" * (-len(secret) % 8), casefold=True)
+        except (binascii.Error, ValueError) as err:
+            raise FritzBoxTwoFactorError(
+                "TOTP secret is not a valid base32 string"
+            ) from err
+        self._otp = pyotp.TOTP(secret)
 
     def get_otp(self) -> str:
         """Return the current TOTP code."""

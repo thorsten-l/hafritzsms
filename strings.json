@@ -18,7 +18,8 @@
       "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
       "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
       "unknown": "[%key:common::config_flow::error::unknown%]",
-      "totp_not_configured": "App-based second factor (TOTP) is not configured for this user yet"
+      "totp_not_configured": "App-based second factor (TOTP) is not configured for this user yet",
+      "invalid_secret": "This is not a valid TOTP secret. Enter the secret shown in the FRITZ!Box (letters A-Z and digits 2-7), not a 6-digit code."
     },
     "abort": {
       "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
