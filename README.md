@@ -1,5 +1,7 @@
 # AVM FRITZ!Box SMS for Home Assistant
 
+[Deutsche Version](README_de.md)
+
 The **AVM FRITZ!Box SMS** integration sends SMS through an AVM FRITZ!Box with a cellular modem
 (for example FRITZ!Box 6850 5G, 6850 LTE, 6890 LTE). It talks to the box locally, so messages
 still go out over the mobile network when your internet connection is down. That makes it a good
