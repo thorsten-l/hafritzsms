@@ -1,47 +1,155 @@
-The **AVM FRITZ!Box SMS** integration allows you to send SMS via an AVM FRITZ!Box with a cellular modem.
+# AVM FRITZ!Box SMS for Home Assistant
 
-This integration uses a local API which is available with 4G/LTE models of AVM FRITZ!Box.
+The **AVM FRITZ!Box SMS** integration sends SMS through an AVM FRITZ!Box with a cellular modem
+(for example FRITZ!Box 6850 5G, 6850 LTE, 6890 LTE). It talks to the box locally, so messages
+still go out over the mobile network when your internet connection is down. That makes it a good
+fallback channel for critical alerts such as power failures.
 
-## Changes in this fork (0.3.0)
+This is a fork of [mback2k/hafritzsms](https://github.com/mback2k/hafritzsms).
+All changes are listed in the [CHANGELOG](CHANGELOG.md).
 
-- The FRITZ!Box client (formerly the PyPI package `pyfritzsms` by @mback2k, Apache-2.0) is vendored as `fritzbox.py`.
-- Login uses PBKDF2 (FRITZ!OS 7.24+) and falls back to MD5 on older boxes.
-- Clear error messages in Home Assistant instead of `KeyError`/`RuntimeError`. The session is always logged out, parallel sends are serialised.
-- The `title` of `notify.send_message` is prepended to the SMS text (`Title: Message`).
-- German translation.
+## Features
+
+- One notify entity per recipient, used with the `notify.send_message` action.
+- Login with PBKDF2 (FRITZ!OS 7.24+), MD5 fallback for older boxes.
+- Second factor (TOTP) is confirmed automatically on every send.
+- Sent messages are deleted from the FRITZ!Box outbox afterwards.
+- Clear error messages in Home Assistant. The session is always logged out.
+- English and German user interface.
 
 ## Requirements
 
-- AVM FRITZ!Box with internal or USB cellular modem and SMS enabled SIM card.
-- User account with app-based second-factor enabled and TOTP secret available.
+- AVM FRITZ!Box with internal or USB cellular modem and a SIM card that can send SMS.
+- Home Assistant 2026.8 or newer (version 0.3.2 uses `via_device_id`, which was introduced in 2026.8).
+- A dedicated FRITZ!Box user with app-based two-factor authentication (TOTP).
+  Each FRITZ!Box user can only have one authenticator app, so do not use your personal account.
 
-## Setup on FRITZ!Box
+## Installation
 
-You will want to create a dedicated account for SMS handling purposes as each account can only have
-one second-factor attached to it. You will need the second-factor plaintext secret for this account.
+### Step 1: Install the integration
 
-1. Login to your FRITZ!Box.
-2. Go to System section.
-3. Go to FRITZ!Box-User management.
-4. Create a new account called for example "fritzsms" and choose a secret password.
-5. The user account will need permission to access FRITZ!Box-Settings, but nothing else.
-6. After creation, edit the user account again to add TOTP app-based second-factor confirmation.
-7. Set "Home Assistant" as Smartphone-Name and reveal the plaintext secret code at the bottom.
-8. Remember the username, password and plaintext secret code for the setup in Home Assistant.
-9. Proceed with Setup in Home Assistant before finishing second-factor setup.
-10. Finish second-factor setup by using the generated TOTP code from step 5. below.
+**Home Assistant 2026.11 and newer (Marketplace)**
 
-## Setup in Home Assistant
+Since 2026.11, the built-in Marketplace has replaced HACS.
 
-You will want to use [HACS](https://www.hacs.xyz/) to install this custom integration.
+1. Open the **Marketplace** and add a **custom repository** (menu with the three dots):
+   `https://github.com/thorsten-l/hafritzsms`, category **Integration**.
+2. Search for **AVM FRITZ!Box SMS** and install it.
+3. Restart Home Assistant.
 
-1. Login to your Home Assistant.
-2. Install custom HACS repository: `https://github.com/thorsten-l/hafritzsms`
-3. Setup new integration "AVM FRITZ!Box SMS" via device settings.
-4. Fill in hostname, username, password and second-factor secret for your FRITZ!Box.
-5. After confirmation you will get an error, but there is now a generated TOTP to copy into step 10. above.
-6. Finish setup on your FRITZ!Box and then confirm the setup in Home Assistant a second time.
-7. Click on the 3 dots next to your freshly configured integration to add notification targets.
-8. Create a notification target for each mobile number that you want to notify via SMS.
-9. The integration will create a notify entity per subconfig entry notification target.
-10. You can use the notify entities with the action `notify.send_message` in your automations.
+**Home Assistant 2026.8 to 2026.10 with HACS**
+
+1. Open **HACS** → menu (three dots) → **Custom repositories**.
+2. Repository: `https://github.com/thorsten-l/hafritzsms`, type **Integration** → **Add**.
+3. Search for **AVM FRITZ!Box SMS**, download it and restart Home Assistant.
+
+**Manual installation**
+
+1. Create the folder `custom_components/fritzsms` in your Home Assistant configuration directory.
+2. Copy all files of this repository (including the `translations` folder) into it.
+3. Restart Home Assistant.
+
+### Step 2: Create a FRITZ!Box user with two-factor authentication
+
+1. Log in to the FRITZ!Box web interface.
+2. Go to **System → FRITZ!Box Users** and click **Add User**.
+3. Enter a user name (for example `homeassistant`) and a strong password.
+4. Grant only the permission **FRITZ!Box Settings**. No other rights are needed.
+5. Save the user, then edit it again.
+6. Enable **two-factor authentication with an authenticator app**. Enter `Home Assistant` as app name.
+7. Click to reveal the **secret as text** below the QR code. It is a string of the letters A–Z and
+   the digits 2–7, for example `JBSW Y3DP EHPK 3PXP`. Copy it.
+   **Important:** you need this secret, not a 6-digit code from an app.
+8. Keep this FRITZ!Box page open. The box asks for a current 6-digit code to finish the setup.
+   Home Assistant generates this code in step 3.
+
+### Step 3: Set up the integration in Home Assistant
+
+1. Go to **Settings → Devices & Services → Add Integration** and select **AVM FRITZ!Box SMS**.
+2. Enter:
+   - **Host**: IP address or host name of the FRITZ!Box, for example `192.168.178.1`
+   - **Username** and **Password** of the user from step 2
+   - **TOTP secret**: the secret from step 2.7 (spaces are ignored)
+3. Click **Submit**.
+   - If the second factor is not finished on the FRITZ!Box yet, the form shows the error
+     *"App-based second factor (TOTP) is not configured for this user yet"*. Below the
+     secret field it shows the **current TOTP code**.
+   - Enter this code on the open FRITZ!Box page (step 2.8) to finish the two-factor setup.
+   - Click **Submit** again in Home Assistant. The integration is now set up.
+
+### Step 4: Add recipients
+
+1. Open **Settings → Devices & Services → AVM FRITZ!Box SMS**.
+2. Click the three dots next to the FRITZ!Box entry → **Add SMS target**.
+3. Enter a name (for example `Thorsten SMS`) and the mobile number in international format
+   (for example `+4917012345678`).
+4. Each recipient becomes its own notify entity, for example `notify.thorsten_sms`.
+   Names and numbers can be changed later with **Update SMS target**.
+
+### Step 5: Send a test message
+
+Open **Developer Tools → Actions**, switch to YAML mode and run:
+
+```yaml
+action: notify.send_message
+target:
+  entity_id: notify.thorsten_sms
+data:
+  title: Home Assistant
+  message: Test SMS via FRITZ!Box
+```
+
+The SMS arrives as `Home Assistant: Test SMS via FRITZ!Box`.
+
+## Usage in automations
+
+```yaml
+- alias: Power failure via SMS
+  triggers:
+    - trigger: state
+      entity_id: sensor.ups_status
+      to: "OB"
+  actions:
+    # Send the SMS first: it works without internet. Other channels may fail
+    # during an outage, so let them continue on error.
+    - action: notify.send_message
+      target:
+        entity_id: notify.thorsten_sms
+      data:
+        message: "Power failure, UPS on battery since {{ now().strftime('%H:%M') }}"
+      continue_on_error: true
+```
+
+Tips:
+
+- An SMS holds 160 characters. A single emoji or special character (ä, ö, ü, €, …) switches the
+  whole message to Unicode and reduces the limit to 70 characters. Keep texts short and plain.
+- Use SMS only for important alerts. Depending on your tariff, every SMS may cost money.
+
+## Troubleshooting
+
+| Message | Cause and solution |
+|---|---|
+| *This is not a valid TOTP secret* | A 6-digit code was entered instead of the secret. Enter the text secret from step 2.7. |
+| *App-based second factor (TOTP) is not configured for this user yet* | Finish two-factor setup on the FRITZ!Box with the code shown below the field (step 3.3). |
+| *Invalid authentication* | Wrong user name or password, or the FRITZ!Box blocks logins for a while after several failed attempts. |
+| *Failed to connect* | Wrong host or the FRITZ!Box is not reachable from Home Assistant. |
+| *SMS to … could not be sent: TOTP code was not accepted* | The clock of Home Assistant or the FRITZ!Box is off. Both need the correct time (NTP). |
+
+For details, enable debug logging:
+
+```yaml
+logger:
+  logs:
+    custom_components.fritzsms: debug
+```
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
+
+## Credits and license
+
+- Original integration and the `pyfritzsms` client by [Marc Hörsken (@mback2k)](https://github.com/mback2k).
+- Fork maintained by [@thorsten-l](https://github.com/thorsten-l).
+- Licensed under the [Apache License 2.0](LICENSE).

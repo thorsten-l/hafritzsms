@@ -4,6 +4,14 @@ This project follows [Semantic Versioning](https://semver.org/).
 Versions up to 0.2.1 come from the original repository
 [mback2k/hafritzsms](https://github.com/mback2k/hafritzsms). This fork starts at 0.3.0.
 
+## [Unreleased]
+
+### Changed
+
+- README rewritten: step-by-step installation (Marketplace, HACS, manual), FRITZ!Box user setup,
+  usage examples, troubleshooting and a link to this changelog.
+- `hacs.json`: minimum Home Assistant version 2026.8.0 (required by `via_device_id`).
+
 ## [0.3.2] - 2026-11-13
 
 ### Fixed

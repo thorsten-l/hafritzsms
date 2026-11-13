@@ -1,4 +1,5 @@
 {
   "name": "AVM FRITZ!Box SMS",
-  "content_in_root": true
+  "content_in_root": true,
+  "homeassistant": "2026.8.0"
 }
